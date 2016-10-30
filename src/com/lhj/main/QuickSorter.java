@@ -1,8 +1,11 @@
 package com.lhj.main;
 
+import java.util.Random;
+
 public final class QuickSorter {
 	
 	private static QuickSorter instance = null;
+	private static boolean randomPivot = true;
 	
 	/**
 	 * Private Constructor for Singleton
@@ -22,13 +25,21 @@ public final class QuickSorter {
 	}
 	
 	/**
+	 * 피벗을 무작위로 선택할지 설정
+	 * @param choose 피벗 무작위 선택 여부
+	 */
+	public static final void chooseRandomPivot(boolean choose) {
+		randomPivot = choose;
+	}
+	
+	/**
 	 * Quick Sort<br>
 	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
 	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
 	 * @param e     정렬할 배열.
 	 */
 	public final <E extends Comparable<E>> void sort(E[] e) {
-		sort(e, 1, e.length - 1);
+		sort(e, 0, e.length - 1);
 	}
 	
 	/**
@@ -42,6 +53,12 @@ public final class QuickSorter {
 	public final <E extends Comparable<E>> void sort(E[] e, int first, int last) {
 		if (first < last) {
 			E pivot = e[first];
+			if (randomPivot) {  // 피벗을 무작위로 선택 (첫 번째 원소와 무작위로 선택한 원소의 자리를 교환)
+				int pivotIndex = new Random().nextInt(last - first + 1) + first;
+				e[first] = e[pivotIndex];
+				e[pivotIndex] = pivot;
+				pivot = e[first];
+			}
 			int splitPoint = partition(e, pivot, first, last);
 			e[splitPoint] = pivot;
 			sort(e, first, splitPoint - 1);
@@ -76,6 +93,7 @@ public final class QuickSorter {
 	}
 	
 	/**
+	 * 배열의 뒤에서 앞으로 이동하며 확인. (t)<br>
 	 * 사후 조건: e[lowVac + 1], ..., e[high]의 우측 원소들 중에서, pivot보다 앞인 (작은) 원소가 e[lowVac]으로 옮겨짐.
 	 * @param <E>       순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
 	 * @param e         정렬할 배열.
@@ -86,19 +104,18 @@ public final class QuickSorter {
 	 */
 	private final <E extends Comparable<E>> int extendedLargeRegion(E[] e, E pivot, int lowVac, int high) {
 		int highVac = lowVac;           // 실패로 가정
-		int curr = high;
-		while (curr > lowVac) {
+		for (int curr = high; curr > lowVac; curr--) {
 			if (e[curr].compareTo(pivot) < 0) {
 				e[lowVac] = e[curr];    // 성공
 				highVac = curr;
 				break;
 			}
-			curr--;                     // 계속 진행
 		}
 		return highVac;
 	}
 	
 	/**
+	 * 배열의 앞에서 뒤로 이동하며 확인. (o)<br>
 	 * 사후 조건: e[low], ..., e[highVac - 1]의 좌측 원소들 중에서, pivot보다 뒤인 (큰) 원소가 e[highVac]으로 옮겨짐.
 	 * @param <E>       순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
 	 * @param e         정렬할 배열.
@@ -109,14 +126,12 @@ public final class QuickSorter {
 	 */
 	private final <E extends Comparable<E>> int extendedSmallRegion(E[] e, E pivot, int low, int highVac) {
 		int lowVac = highVac;           // 실패로 가정
-		int curr = low;
-		while (curr < highVac) {
+		for (int curr = low; curr < highVac; curr++) {
 			if (e[curr].compareTo(pivot) >= 0) {
 				e[highVac] = e[curr];   // 성공
 				lowVac = curr;
 				break;
 			}
-			curr++;                     // 계속 진행
 		}
 		return lowVac;
 	}
