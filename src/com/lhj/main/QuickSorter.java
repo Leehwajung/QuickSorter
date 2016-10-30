@@ -5,7 +5,9 @@ import java.util.Random;
 public final class QuickSorter {
 	
 	private static QuickSorter instance = null;
+	private static final int InitSmallSize = 9;
 	private static boolean randomPivot = true;
+	private static int smallSize = InitSmallSize;    // Small Sort를 하는 서브 배열의 하한 크기
 	
 	/**
 	 * Private Constructor for Singleton
@@ -28,8 +30,20 @@ public final class QuickSorter {
 	 * 피벗을 무작위로 선택할지 설정
 	 * @param choose 피벗 무작위 선택 여부
 	 */
-	public static final void chooseRandomPivot(boolean choose) {
+	public final void setRandomPivot(boolean choose) {
 		randomPivot = choose;
+	}
+	
+	/**
+	 * Small Sort를 수행할지 설정
+	 * @param choose Small Sort 수행 여부
+	 */
+	public final void setSmallSort(boolean choose) {
+		if (choose) {
+			smallSize = InitSmallSize;
+		} else {
+			smallSize = 0;
+		}
 	}
 	
 	/**
@@ -51,7 +65,7 @@ public final class QuickSorter {
 	 * @param last  정렬 범위 끝 인덱스.
 	 */
 	public final <E extends Comparable<E>> void sort(E[] e, int first, int last) {
-		if (first < last) {
+		if (last - first > smallSize) {
 			E pivot = e[first];
 			if (randomPivot) {  // 피벗을 무작위로 선택 (첫 번째 원소와 무작위로 선택한 원소의 자리를 교환)
 				int pivotIndex = new Random().nextInt(last - first + 1) + first;
@@ -63,6 +77,8 @@ public final class QuickSorter {
 			e[splitPoint] = pivot;
 			sort(e, first, splitPoint - 1);
 			sort(e, splitPoint + 1, last);
+		} else {    // last와 first의 차가 smallSize 이하일 때, Small Sort (Insertion Sort)
+			smallSort(e, first, last);
 		}
 	}
 	
@@ -134,5 +150,23 @@ public final class QuickSorter {
 			}
 		}
 		return lowVac;
+	}
+	
+	/**
+	 * Small Sort (by Insertion Sort)
+	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e     정렬할 배열, 원소 e[i]는 first <= i <= last 상에서 정의됨.
+	 * @param first 시작 인덱스.
+	 * @param last  끝 인덱스.
+	 */
+	private <E extends Comparable<E>> void smallSort(E[] e, int first, int last) {
+		for (int xindex = first; xindex <= last; xindex++) {
+			E curr = e[xindex];
+			int vacant = xindex - 1;
+			for (; vacant >= 0 && e[vacant].compareTo(curr) > 0; vacant--) {
+				e[vacant + 1] = e[vacant];
+			}
+			e[vacant + 1] = curr;
+		}
 	}
 }
