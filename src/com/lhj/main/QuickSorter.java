@@ -169,4 +169,45 @@ public final class QuickSorter {
 			e[vacant + 1] = curr;
 		}
 	}
+	
+	/**
+	 * Quick Sort (Tail Recursion Optimization)<br>
+	 * 큰 부분 범위는 순차적(While Loop)으로 수행하고, 작은 부분 범위는 재귀 호출.<br>
+	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
+	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e     정렬할 배열.
+	 */
+	public final <E extends Comparable<E>> void sortTRO(E[] e) {
+		sortTRO(e, 0, e.length - 1);
+	}
+	
+	/**
+	 * Quick Sort (Tail Recursion Optimization)<br>
+	 * 큰 부분 범위는 순차적(While Loop)으로 수행하고, 작은 부분 범위는 재귀 호출.<br>
+	 * 사후 조건: 원소 e[first], ..., e[last]가 정렬됨.
+	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e     정렬할 배열, 원소 e[i]는 first <= i <= last 상에서 정의됨.
+	 * @param first 정렬 범위 시작 인덱스.
+	 * @param last  정렬 범위 끝 인덱스.
+	 */
+	public final <E extends Comparable<E>> void sortTRO(E[] e, int first, int last) {
+		int first1, last1;
+		int first2 = first, last2 = last;
+		while (last2 - first2 >= 1) {
+			E pivot = e[first2];
+			int splitPoint = partition(e, pivot, first2, last2);
+			e[splitPoint] = pivot;
+			if (splitPoint <= (first2 + last2) / 2) {
+				first1 = first2;
+				first2 = splitPoint + 1;
+				last1 = splitPoint - 1;
+			} else {
+				first1 = splitPoint + 1;
+				last1 = last2;
+				last2 = splitPoint - 1;
+			}
+			sortTRO(e, first1, last1);
+			// first2, last2를 위한 loop를 계속함.
+		}
+	}
 }

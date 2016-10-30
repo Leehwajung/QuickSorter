@@ -4,11 +4,18 @@ public class Main {
 	
 	public static void main(String[] args) {
 		QuickSorter sorter = QuickSorter.getInstance();
-		Integer[] e = {8, 21, 93, 9, 28};
+		Integer[] e1 = {8, 21, 93, 9, 28};
+		Integer[] e2 = {8, 21, 93, 9, 28};
 		
-		System.out.println(toString(e));
-		sorter.sort(e);
-		System.out.println(toString(e));
+		System.out.println(toString(e1));
+		sorter.sort(e1);
+		System.out.println(toString(e1));
+		
+		System.out.println("----------");
+		
+		System.out.println(toString(e2));
+		sorter.sortTRO(e2);
+		System.out.println(toString(e2));
 	}
 	
 	private static <E> String toString(E[] e) {
