@@ -5,15 +5,12 @@ import java.util.LinkedList;
 public final class QuickSorter {
 	
 	private static QuickSorter instance = null;
-	private static final int InitSmallSize = 9;      // 개수의 차와 1 차이나게 하여, 결과적으로 10 이하인 경우에 insertion sort를 하게 함
-	private static int smallSize = InitSmallSize;    // Small Sort를 하는 서브 배열의 하한 크기
-	private LinkedList<Partition> stack;
+	private static final int SMALLSIZE = 10;    // Small Sort를 하는 서브 배열의 하한 크기
 	
 	/**
 	 * Private Constructor for Singleton
 	 */
 	private QuickSorter() {
-		stack = new LinkedList<>();
 	}
 	
 	/**
@@ -28,109 +25,197 @@ public final class QuickSorter {
 	}
 	
 	/**
-	 * Small Sort를 수행할지 설정
-	 * @param choose Small Sort 수행 여부
-	 */
-	public final void setSmallSort(boolean choose) {
-		if (choose) {
-			smallSize = InitSmallSize;
-		} else {
-			smallSize = 0;
-		}
-	}
-	
-	/**
-	 * Quick Sort (Stack)<br>
+	 * Quick Sort By Recursion<br>
 	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
 	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
 	 * @param e     정렬할 배열.
 	 */
-	public final <E extends Comparable<E>> void sort(E[] e) {
-		stack.push(new Partition(0, e.length - 1));
-		while (!stack.isEmpty()) {
-			sort(e, stack.pop());
-		}
+	public final <E extends Comparable<E>> void sortByRecursion(E[] e) {
+		sortByRecursion(e, 0, e.length - 1);
 	}
 	
 	/**
-	 * 2. Partition 중에서 데이터의 개수가 많은 것을 stack에 저장하고 partition의 길이와 내용을 출력<br>
-	 * 3. 실행 중인 partition의 내용과 일련번호로 출력하는 기능<br>
-	 * Quick Sort (Stack)<br>
+	 * Quick Sort By Recursion<br>
 	 * 사후 조건: 원소 e[first], ..., e[last]가 정렬됨.
 	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
 	 * @param e     정렬할 배열, 원소 e[i]는 first <= i <= last 상에서 정의됨.
 	 * @param first 정렬 범위 시작 인덱스.
 	 * @param last  정렬 범위 끝 인덱스.
 	 */
-	private final <E extends Comparable<E>> void sort(E[] e, Partition origPart) {
-		System.out.println("3. 실행 중인 Partition의 일련번호와 내용: " + origPart.getId() + ", " + origPart.toString(e));
-		Partition bigPart = null;
-		int first = origPart.getFirst(), last = origPart.getLast();
-		while (last - first > smallSize) {
-			int pivotIndex = selectPivotIndex(first, last);
-			E pivot = e[pivotIndex];
-			e[pivotIndex] = e[first];
-			e[first] = pivot;   // 첫 위치로 이동
-			
-			int splitPoint = partition(e, pivot, first, last);
-			e[splitPoint] = pivot;
-			if (splitPoint > (first + last) / 2) {   // 데이터가 많은 파티션 고르기
-				bigPart = new Partition(first, splitPoint - 1);
-				first = splitPoint + 1;
-			} else {
-				bigPart = new Partition(splitPoint + 1, last);
-				last = splitPoint - 1;
-			}
-			stack.push(bigPart);
-			System.out.println("2.Stack에 Push한 개수가 많은 Partition의 길이와 내용: " + bigPart.getSize() + ", " + bigPart.toString(e));
-			// first, last를 위한 loop를 계속함.
-		}
-		if (last - first <= smallSize) {    // Small Sort (Insertion Sort)
-			smallSort(e, first, last);
-		}
-	}
-	
-	/**
-	 * Quick Sort (재귀)<br>
-	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
-	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
-	 * @param e     정렬할 배열.
-	 */
-	public final <E extends Comparable<E>> void sortR(E[] e) {
-		sortR(e, 0, e.length - 1);
-	}
-	
-	/**
-	 * Quick Sort (재귀)<br>
-	 * 사후 조건: 원소 e[first], ..., e[last]가 정렬됨.
-	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
-	 * @param e     정렬할 배열, 원소 e[i]는 first <= i <= last 상에서 정의됨.
-	 * @param first 정렬 범위 시작 인덱스.
-	 * @param last  정렬 범위 끝 인덱스.
-	 */
-	public final <E extends Comparable<E>> void sortR(E[] e, int first, int last) {
-		if (last - first > smallSize) {
-			int pivotIndex = selectPivotIndex(first, last);
-			E pivot = e[pivotIndex];
-			e[pivotIndex] = e[first];
-			e[first] = pivot;   // 첫 위치로 이동
-			
-			int splitPoint = partition(e, pivot, first, last);
-			e[splitPoint] = pivot;
-			sortR(e, first, splitPoint - 1);
-			sortR(e, splitPoint + 1, last);
+	public final <E extends Comparable<E>> void sortByRecursion(E[] e, int first, int last) {
+		if (last - first + 1 > SMALLSIZE) {
+			int splitPoint = swapPivotForSplitElem(e, first, last);
+			sortByRecursion(e, first, splitPoint - 1);
+			sortByRecursion(e, splitPoint + 1, last);
 		} else {    // Small Sort (Insertion Sort)
 			smallSort(e, first, last);
 		}
 	}
 	
 	/**
+	 * Quick Sort By Tail Recursion Optimization<br>
+	 * 큰 부분 범위는 순차적(While Loop)으로 수행하고, 작은 부분 범위는 재귀 호출.<br>
+	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
+	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e     정렬할 배열.
+	 */
+	public final <E extends Comparable<E>> void sortByTRO(E[] e) {
+		sortByTRO(e, 0, e.length - 1);
+	}
+	
+	/**
+	 * Quick Sort By Tail Recursion Optimization<br>
+	 * 큰 부분 범위는 순차적(While Loop)으로 수행하고, 작은 부분 범위는 재귀 호출.<br>
+	 * 사후 조건: 원소 e[first], ..., e[last]가 정렬됨.
+	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e     정렬할 배열, 원소 e[i]는 first <= i <= last 상에서 정의됨.
+	 * @param first 정렬 범위 시작 인덱스.
+	 * @param last  정렬 범위 끝 인덱스.
+	 */
+	public final <E extends Comparable<E>> void sortByTRO(E[] e, int first, int last) {
+		int smallFirst, smallLast;
+		while (last - first + 1 > SMALLSIZE) {
+			int splitPoint = swapPivotForSplitElem(e, first, last);
+			if (splitPoint <= (first + last) / 2) {
+				smallFirst = first;
+				first = splitPoint + 1;
+				smallLast = splitPoint - 1;
+			} else {
+				smallFirst = splitPoint + 1;
+				smallLast = last;
+				last = splitPoint - 1;
+			}
+			if (smallLast - smallFirst + 1 > SMALLSIZE) {
+				sortByTRO(e, smallFirst, smallLast);
+			} else {    // Small Sort (Insertion Sort)
+				smallSort(e, smallFirst, smallLast);
+			}
+			// first2, last2를 위한 loop를 계속함.
+		}
+		if (last - first + 1 <= SMALLSIZE) {    // Small Sort (Insertion Sort)
+			smallSort(e, first, last);
+		}
+	}
+	
+	/**
+	 * Quick Sort Using Stack<br>
+	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
+	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e     정렬할 배열.
+	 */
+	public final <E extends Comparable<E>> void sortUsingStack(E[] e) {
+		sortUsingStack(e, 0, e.length - 1, false);
+	}
+	
+	/**
+	 * Quick Sort Using Stack<br>
+	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
+	 * @param <E>               순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e                 정렬할 배열.
+	 * @param printPartition    파티션의 내용 출력 여부 선택 (true: 출력함)
+	 */
+	public final <E extends Comparable<E>> void sortUsingStack(E[] e, boolean printPartition) {
+		sortUsingStack(e, 0, e.length - 1, printPartition);
+	}
+	
+	/**
+	 * Quick Sort Using Stack<br>
+	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
+	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e     정렬할 배열.
+	 * @param first 정렬 범위 시작 인덱스.
+	 * @param last  정렬 범위 끝 인덱스.
+	 */
+	public final <E extends Comparable<E>> void sortUsingStack(E[] e, int first, int last) {
+		sortUsingStack(e, 0, e.length - 1, false);
+	}
+	
+	/**
+	 * Quick Sort Using Stack<br>
+	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.<br>
+	 * 2. Partition 중에서 데이터의 개수가 많은 것을 stack에 저장하고 partition의 길이와 내용을 출력<br>
+	 * 3. 실행 중인 partition의 내용과 일련번호로 출력하는 기능<br>
+	 * 4. Partition의 개수가 10개 이하인 경우에는 insertion sort를 이용하여 sort를 하는 기능<br>
 	 * 5. pivot 원소를 median 값으로 선택하여 실행되도록 하는 기능
+	 * @param <E>               순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e                 정렬할 배열.
+	 * @param first             정렬 범위 시작 인덱스.
+	 * @param last              정렬 범위 끝 인덱스.
+	 * @param printPartition    파티션의 내용 출력 여부 선택 (true: 출력함) 
+	 */
+	public final <E extends Comparable<E>> void sortUsingStack(E[] e, int first, int last, boolean printPartition) {
+		LinkedList<Partition> stack = new LinkedList<>();
+		stack.push(new Partition(first, last));
+		
+		while (!stack.isEmpty()) {
+			Partition part = stack.pop();
+			
+			// 3. 실행 중인 partition의 내용과 일련번호로 출력하는 기능
+			if (printPartition) {
+				System.out.println("실행 중인 Partition의 일련번호와 내용: " 
+						+ part.getId() + ", " + part.getStringOfElements(e));
+			}
+			
+			// Partition의 개수가 10개를 초과할 때 quick sort
+			first = part.getFirst();
+			last = part.getLast();
+			while (last - first + 1 > SMALLSIZE) {
+				// 5. pivot 원소를 median 값으로 선택하여 실행되도록 하는 기능
+				int splitPoint = swapPivotForSplitElem(e, first, last);
+				
+				// 2. Partition 중에서 데이터의 개수가 많은 것을 stack에 저장하고 partition의 길이와 내용을 출력
+				Partition bigPart = null;
+				if (splitPoint > (first + last) / 2) {   // Partition 중에서 데이터의 개수가 많은 것을 고름
+					bigPart = new Partition(first, splitPoint - 1);
+					first = splitPoint + 1;
+				} else {
+					bigPart = new Partition(splitPoint + 1, last);
+					last = splitPoint - 1;
+				}
+				stack.push(bigPart);    // stack에 저장
+				if (printPartition) {   // partition의 길이와 내용을 출력
+					System.out.println("Stack에 Push한, 개수가 많은 Partition의 길이와 내용: " 
+							+ bigPart.getSize() + ", " + bigPart.getStringOfElements(e));
+				}
+				
+				// first, last를 위한 loop를 계속함.
+			}
+			
+			// 4. Partition의 개수가 10개 이하인 경우에는 insertion sort를 이용하여 sort를 하는 기능
+			if (last - first + 1 <= SMALLSIZE) {    // Small Sort (Insertion Sort)
+				smallSort(e, first, last);
+			}
+		}
+	}
+	
+	/**
+	 * Swap Pivot for Split Element<br>
+	 * 5. pivot 원소를 median 값으로 선택하여 실행되도록 하는 기능
+	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
+	 * @param e     정렬할 배열, 원소 e[i]는 first <= i <= last 상에서 정의됨.
+	 * @param first 정렬 범위 시작 인덱스.
+	 * @param last  정렬 범위 끝 인덱스.
+	 * @return Split Point
+	 */
+	private <E extends Comparable<E>> int swapPivotForSplitElem(E[] e, int first, int last) {
+		int pivotIndex = selectPivotIndex(first, last); // median 값으로 선택
+		E pivot = e[pivotIndex];
+		if (pivotIndex != first) {
+			e[pivotIndex] = e[first];
+			e[first] = pivot;   // 첫 위치로 이동
+		}
+		int splitPoint = partition(e, pivot, first, last);
+		e[splitPoint] = pivot;
+		return splitPoint;
+	}
+	
+	/**
+	 * Select Pivot Index
 	 * @param first 정렬 범위 시작 인덱스.
 	 * @param last  정렬 범위 끝 인덱스.
 	 * @return 중간 값
 	 */
-	public final int selectPivotIndex(int first, int last) {
+	private final int selectPivotIndex(int first, int last) {
 		return (last + first) / 2;  // 중간 값 선택
 		//return new Random().nextInt(last - first + 1) + first;
 	}
@@ -206,8 +291,8 @@ public final class QuickSorter {
 	}
 	
 	/**
-	 * 4. Partition의 개수가 10개 이하인 경우에는 insertion sort를 이용하여 sort를 하는 기능<br>
-	 * Small Sort (by Insertion Sort)
+	 * Small Sort (by Insertion Sort)<br>
+	 * 4. Partition의 개수가 10개 이하인 경우에는 insertion sort를 이용하여 sort를 하는 기능
 	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
 	 * @param e     정렬할 배열, 원소 e[i]는 first <= i <= last 상에서 정의됨.
 	 * @param first 시작 인덱스.
@@ -224,94 +309,61 @@ public final class QuickSorter {
 		}
 	}
 	
-	/**
-	 * Quick Sort (Tail Recursion Optimization)<br>
-	 * 큰 부분 범위는 순차적(While Loop)으로 수행하고, 작은 부분 범위는 재귀 호출.<br>
-	 * 사후 조건: 원소 e[0], ..., e[length - 1] 전체가 정렬됨.
-	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
-	 * @param e     정렬할 배열.
-	 */
-	public final <E extends Comparable<E>> void sortTRO(E[] e) {
-		sortTRO(e, 0, e.length - 1);
-	}
 	
 	/**
-	 * Quick Sort (Tail Recursion Optimization)<br>
-	 * 큰 부분 범위는 순차적(While Loop)으로 수행하고, 작은 부분 범위는 재귀 호출.<br>
-	 * 사후 조건: 원소 e[first], ..., e[last]가 정렬됨.
-	 * @param <E>   순서를 비교할 수 있는 원소의 타입. (Comparable<>을 구현)
-	 * @param e     정렬할 배열, 원소 e[i]는 first <= i <= last 상에서 정의됨.
-	 * @param first 정렬 범위 시작 인덱스.
-	 * @param last  정렬 범위 끝 인덱스.
+	 * Partition Class for Quick Sort Using Stack
 	 */
-	public final <E extends Comparable<E>> void sortTRO(E[] e, int first, int last) {
-		int first1, last1;
-		int first2 = first, last2 = last;
-		while (last2 - first2 >= 1) {
-			E pivot = e[first2];
-			int splitPoint = partition(e, pivot, first2, last2);
-			e[splitPoint] = pivot;
-			if (splitPoint <= (first2 + last2) / 2) {
-				first1 = first2;
-				first2 = splitPoint + 1;
-				last1 = splitPoint - 1;
-			} else {
-				first1 = splitPoint + 1;
-				last1 = last2;
-				last2 = splitPoint - 1;
-			}
-			sortTRO(e, first1, last1);
-			// first2, last2를 위한 loop를 계속함.
-		}
-	}
-	
-	public static class Partition {
+	private static final class Partition {
 		
 		private int first;
 		private int last;
 		private int id;
-		private static int idFactor = 1;
+		private static int nextId = 1;
 		
 		/**
 		 * @param first
 		 * @param last
 		 */
-		public Partition(int first, int last) {
+		private Partition(int first, int last) {
 			this.first = first;
 			this.last = last;
-			this.id = idFactor++;
+			this.id = nextId++;
 		}
 		
 		/**
 		 * @return the first
 		 */
-		public int getFirst() {
+		private int getFirst() {
 			return first;
 		}
 		
 		/**
 		 * @return the last
 		 */
-		public int getLast() {
+		private int getLast() {
 			return last;
 		}
 		
 		/**
 		 * @return size
 		 */
-		public int getSize() {
+		private int getSize() {
 			return last - first + 1;
 		}
 		
 		/**
 		 * @return the id
 		 */
-		public int getId() {
+		private int getId() {
 			return id;
 		}
 		
-		private <E> String toString(E[] e) {
-			if (e.length == 0) {
+		/**
+		 * @param e 원소를 가져올 배열
+		 * @return 문자열로 변환된 원소들
+		 */
+		private <E> String getStringOfElements(E[] e) {
+			if (first == last || e.length == 0) {
 				return "[]";
 			}
 			StringBuilder sb = new StringBuilder();
