@@ -63,11 +63,15 @@ public final class QuickSorter {
 	 * @param last  정렬 범위 끝 인덱스.
 	 */
 	private final <E extends Comparable<E>> void sort(E[] e, Partition origPart) {
-		System.out.println("3. 실행중인 Partition의 일련번호와 내용: " + origPart.getId() + ", " + origPart.toString(e));
+		System.out.println("3. 실행 중인 Partition의 일련번호와 내용: " + origPart.getId() + ", " + origPart.toString(e));
 		Partition bigPart = null;
 		int first = origPart.getFirst(), last = origPart.getLast();
-		while (last - first >= 1) {
-			E pivot = e[first];
+		while (last - first > smallSize) {
+			int pivotIndex = selectPivotIndex(first, last);
+			E pivot = e[pivotIndex];
+			e[pivotIndex] = e[first];
+			e[first] = pivot;   // 첫 위치로 이동
+			
 			int splitPoint = partition(e, pivot, first, last);
 			e[splitPoint] = pivot;
 			if (splitPoint > (first + last) / 2) {   // 데이터가 많은 파티션 고르기
@@ -80,6 +84,9 @@ public final class QuickSorter {
 			stack.push(bigPart);
 			System.out.println("2.Stack에 Push한 개수가 많은 Partition의 길이와 내용: " + bigPart.getSize() + ", " + bigPart.toString(e));
 			// first, last를 위한 loop를 계속함.
+		}
+		if (last - first <= smallSize) {    // Small Sort (Insertion Sort)
+			smallSort(e, first, last);
 		}
 	}
 	
